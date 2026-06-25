@@ -1,1 +1,1 @@
-# scattergories-ttpr-project
+# TTPR-Scattergories
