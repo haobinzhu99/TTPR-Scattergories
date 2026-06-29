@@ -1,11 +1,20 @@
+import "dotenv/config";
 import express from "express";
+import { Pool } from "pg";
+import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "@prisma/client";
-const app = express();
-const prisma = new PrismaClient();
-const port = 3000;
-app.use(express.json());
-app.use(express.static("public"))
 
+const app = express();
+app.use(express.json());
+
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+});
+const adapter = new PrismaPg(pool);
+const prisma = new PrismaClient({
+  adapter,
+});
+const port = 3000;
 //letters for the game
 const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
 
@@ -30,7 +39,7 @@ app.post("/games", async (req, res) => {
     const { roomId } = req.body;
     
     //if no roomid was provided, return error 400
-    if (!roomID) {
+    if (!roomId) {
         return res.status(400).json({
             error: "A RoomId is required"
         });
@@ -72,15 +81,64 @@ app.get("/games", async (req, res) => {
         });
 
         res.json(games);
+    // shows whats wrong 
     } catch (error) {
-        res.status(500).json({
-            error: "Server error"
+        console.error(error);
+        return res.status(500).json({
+            error: error.message
         });
     }
 });
 
 //work on post answer func
+app.post("/answers", async (req, res) => {
+  const { gameId, username, answer } = req.body;
+    // checks for gameid, username, answers
+  if (!gameId || !username || !answer) {
+    return res.status(400).json({
+      error: "Missing required fields"
+    });
+  }
+  
+  try {
+    const game = await prisma.game.findUnique({
+      where: {
+        id: Number(gameId)
+      }
+    });
 
+    if (!game) {
+      return res.status(404).json({
+        error: "Game not found"
+      });
+    }
+    // normalizes the answers to allow checking for duplicates
+    const normalizedAnswer = answer.trim().toLowerCase();
+
+    const newAnswer = await prisma.answer.create({
+      data: {
+        username,
+        answer,
+        normalizedAnswer,
+        gameId: Number(gameId)
+      }
+    });
+
+    return res.status(201).json(newAnswer);
+  } catch (error) {
+    if (error.code === "P2002") {
+      return res.status(409).json({
+        error: "That answer has already been submitted for this game"
+      });
+    }
+
+    console.error(error);
+
+    return res.status(500).json({
+      error: "Server error"
+    });
+  }
+});
 
 app.listen(port, () => {
     console.log(`Server running on port ${port}`);
