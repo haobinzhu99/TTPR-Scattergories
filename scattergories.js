@@ -112,9 +112,14 @@ app.post("/answers", async (req, res) => {
         error: "Game not found"
       });
     }
-    // normalizes the answers to allow checking for duplicates
-    const normalizedAnswer = answer.trim().toLowerCase();
 
+    const trimmed = answer.trim();
+
+    if (!trimmed || trimmed[0].toLowerCase() !== game.letter.toLowerCase()) {
+        return res.status(400).json({error: `Answer must start with the letter ${game.letter}`});
+    }
+
+    const normalizedAnswer = answer.trim().toLowerCase();
     const newAnswer = await prisma.answer.create({
       data: {
         username,
