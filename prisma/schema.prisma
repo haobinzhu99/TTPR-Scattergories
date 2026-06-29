@@ -1,27 +1,29 @@
 generator client {
-  provider = "prisma-client-js"
+  provider            = "prisma-client"
+  output              = "TTPR-Scattergories/src/generated/prisma"
+  importFileExtension = "js"
+  moduleFormat        = "esm"
+  runtime             = "nodejs"
 }
 
 datasource db {
   provider = "postgresql"
 }
 
-model Game {
-  id      Int      @id @default(autoincrement())
-  roomId  String   @unique
-  letter  String
-  topic   String
-  answers Answer[]
+model Answer {
+  id               String  @id @db.Uuid
+  username         String?
+  answer           String?
+  normalizedAnswer String?
+  gameId           BigInt?
 }
 
-model Answer {
-  answerId         Int    @id @default(autoincrement())
-  username         String
-  answer           String
-  normalizedAnswer String
-  gameId           Int
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model Game {
+  id     String? @db.Uuid
+  roomID String?
+  letter String?
+  topic  String?
 
-  game Game @relation(fields: [gameId], references: [id])
-
-  @@unique([gameId, normalizedAnswer])
+  @@ignore
 }
