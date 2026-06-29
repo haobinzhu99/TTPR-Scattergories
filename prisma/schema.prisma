@@ -1,6 +1,6 @@
 generator client {
   provider            = "prisma-client"
-  output              = "TTPR-Scattergories/src/generated/prisma"
+  output              = "../src/generated/prisma"
   importFileExtension = "js"
   moduleFormat        = "esm"
   runtime             = "nodejs"
