@@ -2,4 +2,3 @@ node_modules
 .yarn
 .env
 /src/generated/prisma
-dist/
