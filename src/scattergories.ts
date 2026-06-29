@@ -109,6 +109,18 @@ app.post("/answers", async (req, res) => {
         error: "Game not found",
       });
     }
+    const trimmed = answer.trim();
+      if (!trimmed) {
+        return res.status(400).json({
+          error: "Answer cannot be empty",
+        });
+      }
+
+      if (trimmed[0].toUpperCase() !== game.letter) {
+        return res.status(400).json({
+          error: `Answer must start with the letter ${game.letter}`,
+        });
+      }
     // normalizes the answers to allow checking for duplicates
     const normalizedAnswer = answer.trim().toLowerCase();
 
